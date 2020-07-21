@@ -5,6 +5,6 @@
     "n_positions": 384,
     "n_embd": 768,
     "n_head": 16,
-    "n_layer": 22,
+    "n_layer": 24,
     "vocab_size": 21130
 }
