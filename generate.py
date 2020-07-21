@@ -132,7 +132,7 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
     suffix_tokens = suffix_tokens + [begin_token_id]
     suffix_positions = [i + len(prefix_tokens) + length for i in range(len(suffix_tokens))]  # prefix的长度 + 补全内容的长度length
 
-    prefix_tokens = prefix_tokens[:-1]   # 拿走一个当成prev
+    prefix_tokens = prefix_tokens[:-1]  # 拿走一个当成prev
     prefix_positions = [i for i in range(len(prefix_tokens))]
 
     context_tokens = suffix_tokens + prefix_tokens
@@ -212,10 +212,11 @@ if __name__ == '__main__':
         )
         generated = 0
         for _ in range(args.nsamples // args.batch_size):
+            gen_len = args.length + 10  # 多生成点，可能能发现<end>
             out = generate(
                 model=model,
                 context=context_tokens,
-                length=args.length,
+                length=gen_len,
                 temperature=args.temperature,
                 top_k=args.topk,
                 top_p=args.topp,
