@@ -4,8 +4,8 @@ python train.py \
 	--data_dir data/tokenized \
 	--overwrite_output_dir \
 	--do_train \
-	--num_train_epochs 10 \
-	--save_steps 10000 \
+	--num_train_epochs 1 \
+	--save_steps 1 \
 	--output_dir data/model \
 	--vocab_file data/vocab/vocab.txt
 	#--pretrained_model_path model/model_epoch_1
