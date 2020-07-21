@@ -3,7 +3,7 @@
 from torch.utils.data.dataset import Dataset
 import numpy as np
 import torch
-from random import random,randint
+from random import random, randint
 import math
 
 """
@@ -20,6 +20,7 @@ class GPT2Dataset(Dataset):
                  ):
         begin_token_id = tokenizer.convert_tokens_to_ids('<begin>')
         end_token_id = tokenizer.convert_tokens_to_ids('<end>')
+        pad_token_id = 0
 
         arr = np.fromfile(tokenized_file, dtype=np.int16).tolist()
         arr_len = len(arr)
@@ -50,6 +51,11 @@ class GPT2Dataset(Dataset):
             prefix_positions = [i for i in range(len(prefix))]
             final_sample = suffix + prefix
             final_sample_positions = suffix_positions + prefix_positions
+
+            # padding
+            if len(final_sample) < n_ctx:
+                final_sample = final_sample + [pad_token_id] * (n_ctx - len(final_sample))
+                final_sample_positions = final_sample_positions + [0] * (n_ctx - len(final_sample_positions))
 
             self.features.append(final_sample)
             self.positions.append(final_sample_positions)
