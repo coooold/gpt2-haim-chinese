@@ -34,26 +34,24 @@ class GPT2Dataset(Dataset):
         while start_point + n_ctx < arr_len:
             sample_len = randint(min_len, n_ctx - 2)
             sample = arr[start_point: start_point + sample_len]
-            prefix_len = max(math.floor(sample_len * 0.5 * random()), 3)
-            suffix_len = math.floor(sample_len * 0.3 * random())
-            # suffix_len = suffix_len if suffix_len > n_ctx * 0.03 else 0  # 10%的情况没有suffix
-            middle_len = sample_len - prefix_len - suffix_len
+            # 句子切分为 prefix_len + suffix_len
+            prefix_len = math.floor(
+                sample_len * (random() * 0.3 + 0.5)
+            )
 
             """
             # The random shift \deltaδ is introduced to soften the length constraint, 
             effectively allowing the model some leeway at inference time. 
             We sampled the position shift uniformly in \left[0, 0.1\times n\right][0,0.1×n].
             """
-            delta = randint(0, math.floor(0.1 * sample_len))
-            suffix = sample[prefix_len + middle_len:sample_len] + [begin_token_id]
-            suffix_positions = [prefix_len + 1 + middle_len + i for i in range(len(suffix))]
+            #delta = randint(0, math.floor(0.1 * sample_len))
+            suffix = sample[prefix_len:sample_len] + [begin_token_id]
+            suffix_positions = [prefix_len + 1 + i for i in range(len(suffix))]
             prefix = sample[0:prefix_len] + [end_token_id]
             prefix_positions = [i for i in range(len(prefix))]
-            middle = sample[prefix_len:prefix_len + middle_len]
-            middle_positions = [prefix_len + i + 1 for i in range(len(middle))]
 
-            final_sample = suffix + prefix + middle
-            final_sample_positions = suffix_positions + prefix_positions + middle_positions
+            final_sample = suffix + prefix
+            final_sample_positions = suffix_positions + prefix_positions
 
             # padding
             if len(final_sample) < n_ctx:
