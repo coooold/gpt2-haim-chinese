@@ -130,9 +130,9 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
     prev = prefix_tokens[-1]
 
     suffix_tokens = suffix_tokens + [begin_token_id]
-    suffix_positions = [i + len(prefix_tokens) - 1 + 1 for i in
-                        range(len(suffix_tokens))]  # 减去1个prefix的最后token（用作prev），加上一个<end> token
-    prefix_tokens = prefix_tokens[:-1] + [end_token_id]  # 加上<begin>
+    suffix_positions = [i + len(prefix_tokens) + length for i in range(len(suffix_tokens))]  # prefix的长度 + 补全内容的长度length
+
+    prefix_tokens = prefix_tokens[:-1]   # 拿走一个当成prev
     prefix_positions = [i for i in range(len(prefix_tokens))]
 
     context_tokens = suffix_tokens + prefix_tokens
