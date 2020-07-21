@@ -212,7 +212,7 @@ if __name__ == '__main__':
         )
         generated = 0
         for _ in range(args.nsamples // args.batch_size):
-            gen_len = args.length + 10  # 多生成点，可能能发现<end>
+            gen_len = args.length + 20  # 多生成点，可能能发现<end>
             out = generate(
                 model=model,
                 context=context_tokens,
