@@ -52,7 +52,7 @@ if __name__ == '__main__':
     )
 
     count = 1
-    for root, subdirs, files in os.walk('data/train'):
+    for root, subdirs, files in os.walk(train_data_path):
         for file in files:
             train_data_file = train_data_path + '/' + file
             tokenized_data_file = tokenized_data_path + '/' + '{}.txt'.format(count)

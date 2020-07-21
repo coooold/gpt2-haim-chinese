@@ -1,3 +1,4 @@
+data/tokenized/*
 data/model
 .idea
 **/*.pyc

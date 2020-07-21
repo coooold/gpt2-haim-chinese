@@ -34,9 +34,9 @@ class GPT2Dataset(Dataset):
         while start_point + n_ctx < arr_len:
             sample_len = randint(min_len, n_ctx - 2)
             sample = arr[start_point: start_point + sample_len]
-            prefix_len = max(math.floor(n_ctx * 0.5 * random()), 3)
-            suffix_len = math.floor(n_ctx * 0.3 * random())
-            suffix_len = suffix_len if suffix_len > n_ctx * 0.03 else 0  # 10%的情况没有suffix
+            prefix_len = max(math.floor(sample_len * 0.5 * random()), 3)
+            suffix_len = math.floor(sample_len * 0.3 * random())
+            # suffix_len = suffix_len if suffix_len > n_ctx * 0.03 else 0  # 10%的情况没有suffix
             middle_len = sample_len - prefix_len - suffix_len
 
             """
@@ -46,16 +46,19 @@ class GPT2Dataset(Dataset):
             """
             delta = randint(0, math.floor(0.1 * sample_len))
             suffix = sample[prefix_len + middle_len:sample_len] + [begin_token_id]
-            suffix_positions = [i + prefix_len + 1 + middle_len + delta for i in range(len(suffix))]
+            suffix_positions = [prefix_len + 1 + middle_len + i for i in range(len(suffix))]
             prefix = sample[0:prefix_len] + [end_token_id]
             prefix_positions = [i for i in range(len(prefix))]
-            final_sample = suffix + prefix
-            final_sample_positions = suffix_positions + prefix_positions
+            middle = sample[prefix_len:prefix_len + middle_len]
+            middle_positions = [prefix_len + i + 1 for i in range(len(middle))]
+
+            final_sample = suffix + prefix + middle
+            final_sample_positions = suffix_positions + prefix_positions + middle_positions
 
             # padding
             if len(final_sample) < n_ctx:
                 final_sample = final_sample + [pad_token_id] * (n_ctx - len(final_sample))
-                final_sample_positions = final_sample_positions + [0] * (n_ctx - len(final_sample_positions))
+                final_sample_positions = final_sample_positions + [383] * (n_ctx - len(final_sample_positions))
 
             self.features.append(final_sample)
             self.positions.append(final_sample_positions)
@@ -68,6 +71,7 @@ class GPT2Dataset(Dataset):
     def __getitem__(self, i):
         sample = torch.tensor(self.features[i]).long()
         positions = torch.tensor(self.positions[i]).long()
+
         return {
             'input_ids': sample,
             'labels': sample,
