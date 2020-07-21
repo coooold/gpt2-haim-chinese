@@ -228,6 +228,9 @@ if __name__ == '__main__':
                 for i, item in enumerate(text[:-1]):  # 确保英文前后有空格
                     if is_word(item) and is_word(text[i + 1]):
                         text[i] = item + ' '
+                    if item == '<end>':
+                        text[i] = item + ' '
+                        break
                 for i, item in enumerate(text):
                     if item == '[MASK]':
                         text[i] = ''
@@ -235,8 +238,6 @@ if __name__ == '__main__':
                         text[i] = '\n\n'
                     elif item == '[SEP]':
                         text[i] = '\n'
-                    elif item == '<end>':
-                        break
                 print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40 + "\n")
                 text = ''.join(text).replace('##', '').strip()
                 print(text)
