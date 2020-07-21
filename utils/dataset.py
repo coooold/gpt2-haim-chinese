@@ -56,7 +56,7 @@ class GPT2Dataset(Dataset):
             # padding
             if len(final_sample) < n_ctx:
                 final_sample = final_sample + [pad_token_id] * (n_ctx - len(final_sample))
-                final_sample_positions = final_sample_positions + [383] * (n_ctx - len(final_sample_positions))
+                final_sample_positions = final_sample_positions + [0] * (n_ctx - len(final_sample_positions))
 
             self.features.append(final_sample)
             self.positions.append(final_sample_positions)
