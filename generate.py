@@ -81,7 +81,7 @@ def generate(model, prev, prev_position, context, context_positions, length, tem
         past=None,
         position_ids=inputs_positions,
     )
-    generate = [] + context
+    generate = [] + context + [prev]
     with torch.no_grad():
         for _ in range(length):
             prev_positions = torch.LongTensor([prev_position]).unsqueeze(0).to(device)
