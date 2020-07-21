@@ -235,6 +235,8 @@ if __name__ == '__main__':
                         text[i] = '\n\n'
                     elif item == '[SEP]':
                         text[i] = '\n'
+                    elif item == '<end>':
+                        break
                 print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40 + "\n")
                 text = ''.join(text).replace('##', '').strip()
                 print(text)
