@@ -8,18 +8,6 @@ from transformers import GPT2LMHeadModel
 import utils
 from transformers.generation_utils import top_k_top_p_filtering
 
-def fetch_token(logits, top_k, top_p):
-    generated_tokens = []
-
-    if logits.dim() == 1:
-        logits = logits.unsqueeze(0)
-    for t in logits:
-        filtered_logits = top_k_top_p_filtering(t, top_k=top_k, top_p=top_p)
-        next_token = torch.multinomial(torch.softmax(filtered_logits, dim=-1), num_samples=1)
-        generated_tokens.append(next_token)
-
-    return generated_tokens
-
 
 @torch.no_grad()
 def generate(model, context, context_positions, length, prefix_len, temperature=1.0, top_k=30, top_p=0.0,

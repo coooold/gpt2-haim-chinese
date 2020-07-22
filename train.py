@@ -44,7 +44,7 @@ def main():
     # 输入集
     train_dataset = GPT2Dataset(model_config.n_ctx,
                                 stride=model_args.stride,
-                                tokenized_file=model_args.data_dir + '/1.txt',
+                                tokenized_file_path=model_args.data_dir,
                                 tokenizer=full_tokenizer)
 
     trainer = Trainer(model=model,
