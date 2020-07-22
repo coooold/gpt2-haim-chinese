@@ -3,7 +3,7 @@
 from torch.utils.data.dataset import Dataset
 import numpy as np
 import torch
-from random import random, randint
+from random import random, randint, shuffle
 import math
 import os
 
@@ -47,7 +47,8 @@ class GPT2Dataset(Dataset):
         for root, subdirs, files in os.walk(tokenized_data_path):
             for file in files:
                 train_files.append(tokenized_data_path + '/' + file)
-        return train_files
+        shuffle(train_files)
+        return train_files[0:5]  # 只装载5个文件，防止爆内存
 
     def load_samples(self, tokenized_file):
         print("loading tokenized file: {}".format(tokenized_file))
