@@ -24,6 +24,8 @@ class GPT2Dataset(Dataset):
 
         self.features = []
         self.positions = []
+        self.suffixs = []
+        self.suffix_positions = []
 
         for f in self.scan_files(tokenized_file_path):
             self.load_samples(f)
@@ -34,11 +36,15 @@ class GPT2Dataset(Dataset):
     def __getitem__(self, i):
         sample = torch.tensor(self.features[i]).long()
         positions = torch.tensor(self.positions[i]).long()
+        suffix = torch.tensor(self.suffixs[i]).long()
+        suffix_positions = torch.tensor(self.suffix_positions[i]).long()
 
         return {
             'input_ids': sample,
+            'position_ids': positions,
             'labels': sample,
-            'position_ids': positions
+            'suffix_ids': suffix,
+            'suffix_position_ids': suffix_positions,
         }
 
     @staticmethod
@@ -78,15 +84,9 @@ class GPT2Dataset(Dataset):
             prefix = sample[0:prefix_len] + [self.end_token_id]
             prefix_positions = [i for i in range(len(prefix))]
 
-            final_sample = suffix + prefix
-            final_sample_positions = suffix_positions + prefix_positions
-
-            # padding
-            if len(final_sample) < self.n_ctx:
-                final_sample = final_sample + [self.pad_token_id] * (self.n_ctx - len(final_sample))
-                final_sample_positions = final_sample_positions + [0] * (self.n_ctx - len(final_sample_positions))
-
-            self.features.append(final_sample)
-            self.positions.append(final_sample_positions)
+            self.suffixs.append(suffix)
+            self.suffix_positions.append(suffix_positions)
+            self.features.append(prefix)
+            self.positions.append(prefix_positions)
 
             start_point += self.stride
