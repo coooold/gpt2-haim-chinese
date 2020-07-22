@@ -15,7 +15,7 @@ def generate(model, context, context_positions, length, prefix_len, temperature=
     inputs = torch.LongTensor(context).unsqueeze(0).to(device)
     inputs_positions = torch.LongTensor(context_positions).unsqueeze(0).to(device)
 
-    generated_tokens = [] + context
+    generated_tokens = []
     generated_positions = torch.LongTensor([prefix_len - 1]).unsqueeze(0).to(device)
 
     past = None
@@ -108,7 +108,14 @@ def main():
         )
 
         print("=" * 40 + "=" * 40 + "\n")
-        text = tokenizer.decode(out, clean_up_tokenization_spaces=True)
+        print(args.prefix)
+        text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
+
+        end_pos = text.find('<end>')
+        if end_pos >= 0:
+            text = text[:end_pos]
+
+        print(args.suffix)
         print(text)
 
 
