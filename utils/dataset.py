@@ -48,7 +48,7 @@ class GPT2Dataset(Dataset):
             for file in files:
                 train_files.append(tokenized_data_path + '/' + file)
         shuffle(train_files)
-        return train_files[0:5]  # 只装载5个文件，防止爆内存
+        return train_files[0:10]  # 只装载几个文件，防止爆内存
 
     def load_samples(self, tokenized_file):
         print("loading tokenized file: {}".format(tokenized_file))
