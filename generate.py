@@ -114,9 +114,8 @@ def main():
         end_pos = text.find('<end>')
         if end_pos >= 0:
             text = text[:end_pos]
-
-        print(args.suffix)
         print(text)
+        print(args.suffix)
 
 
 if __name__ == '__main__':
