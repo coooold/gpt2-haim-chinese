@@ -6,4 +6,5 @@ python generate.py \
   --prefix "农民说：" \
   --suffix "然后回了家。" \
   --topp 1 \
-  --temperature 1.0
+  --temperature 1.0 \
+  --nsamples 5

@@ -8,37 +8,6 @@ from transformers import GPT2LMHeadModel
 import utils
 
 
-def is_word(word):
-    for item in list(word):
-        if item not in 'qwertyuiopasdfghjklzxcvbnm':
-            return False
-    return True
-
-
-def _is_chinese_char(char):
-    """Checks whether CP is the codepoint of a CJK character."""
-    # This defines a "chinese character" as anything in the CJK Unicode block:
-    #   https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-    #
-    # Note that the CJK Unicode block is NOT all Japanese and Korean characters,
-    # despite its name. The modern Korean Hangul alphabet is a different block,
-    # as is Japanese Hiragana and Katakana. Those alphabets are used to write
-    # space-separated words, so they are not treated specially and handled
-    # like the all of the other languages.
-    cp = ord(char)
-    if ((cp >= 0x4E00 and cp <= 0x9FFF) or  #
-            (cp >= 0x3400 and cp <= 0x4DBF) or  #
-            (cp >= 0x20000 and cp <= 0x2A6DF) or  #
-            (cp >= 0x2A700 and cp <= 0x2B73F) or  #
-            (cp >= 0x2B740 and cp <= 0x2B81F) or  #
-            (cp >= 0x2B820 and cp <= 0x2CEAF) or
-            (cp >= 0xF900 and cp <= 0xFAFF) or  #
-            (cp >= 0x2F800 and cp <= 0x2FA1F)):  #
-        return True
-
-    return False
-
-
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
     """ Filter a distribution of logits using top-k and/or nucleus (top-p) filtering
         Args:
@@ -70,29 +39,26 @@ def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')
     return logits
 
 
-def generate(model, prev, prev_position, context, context_positions, length, temperature=1.0, top_k=30, top_p=0.0,
+@torch.no_grad()
+def generate(model, context, context_positions, length, prefix_len, temperature=1.0, top_k=30, top_p=0.0,
              device='cpu'):
-    prev = torch.LongTensor([prev]).unsqueeze(0).to(device)
     inputs = torch.LongTensor(context).unsqueeze(0).to(device)
     inputs_positions = torch.LongTensor(context_positions).unsqueeze(0).to(device)
 
-    _, past = model(
-        input_ids=inputs,
-        past=None,
-        position_ids=inputs_positions,
-    )
-    generate = [] + context + [prev]
-    with torch.no_grad():
-        for _ in range(length):
-            prev_positions = torch.LongTensor([prev_position]).unsqueeze(0).to(device)
-            output, past = model(prev, past=past, position_ids=prev_positions)
-            output = output[-1].squeeze(0) / temperature
-            filtered_logits = top_k_top_p_filtering(output, top_k=top_k, top_p=top_p)
-            next_token = torch.multinomial(torch.softmax(filtered_logits, dim=-1), num_samples=1)
-            generate.append(next_token.item())
-            prev = next_token.view(1, 1)
-            prev_position += 1
-    return generate
+    generated_tokens = [] + context
+    generated_position = prefix_len
+    past = None
+    for _ in range(length):
+        output, past = model(inputs, past=past, position_ids=inputs_positions)
+        output = output[-1].squeeze(0) / temperature
+        filtered_logits = top_k_top_p_filtering(output, top_k=top_k, top_p=top_p)
+        next_token = torch.multinomial(torch.softmax(filtered_logits, dim=-1), num_samples=1)
+        generated_tokens.append(next_token.item())
+        inputs = next_token.view(1, 1)
+        generated_position += 1
+        inputs_positions = torch.LongTensor([generated_position]).unsqueeze(0).to(device)
+
+    return generated_tokens
 
 
 def parse_args():
@@ -119,7 +85,7 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
     前缀，后缀，中间长度
     """
     begin_token_id = tokenizer.convert_tokens_to_ids('<begin>')
-    end_token_id = tokenizer.convert_tokens_to_ids('<end>')
+
     prefix_tokens = tokenizer.convert_tokens_to_ids(
         tokenizer.tokenize(prefix)
     )
@@ -127,20 +93,13 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
         tokenizer.tokenize(suffix)
     )
 
-    prev = prefix_tokens[-1]
-
-    suffix_tokens = suffix_tokens + [begin_token_id]
-    suffix_positions = [i + len(prefix_tokens) + length for i in range(len(suffix_tokens))]  # prefix的长度 + 补全内容的长度length
-
-    prefix_tokens = prefix_tokens[:-1]  # 拿走一个当成prev
     prefix_positions = [i for i in range(len(prefix_tokens))]
 
-    context_tokens = suffix_tokens + prefix_tokens
-    context_positions = suffix_positions + prefix_positions
+    suffix_tokens = suffix_tokens + [begin_token_id]
+    # prefix的长度 + 补全内容的长度length
+    suffix_positions = [i + len(prefix_tokens) + length + 1 for i in range(len(suffix_tokens))]
 
-    prev_position = len(prefix_tokens) + 1
-
-    return prev, prev_position, context_tokens, context_positions
+    return suffix_tokens + prefix_tokens, suffix_positions + prefix_positions, len(prefix_tokens)
 
 
 def main():
@@ -155,7 +114,7 @@ def main():
     model.eval()
 
     for c in range(args.nsamples):
-        prev, prev_position, context_tokens, context_positions = prepare_inputs(
+        context_tokens, context_positions, prefix_len = prepare_inputs(
             prefix=args.prefix,
             suffix=args.suffix,
             length=args.length,
@@ -163,83 +122,20 @@ def main():
         )
         out = generate(
             model=model,
-            prev=prev,
-            prev_position=prev_position,
             context=context_tokens,
             context_positions=context_positions,
-            length=args.length,
+            length=args.length + 10,
+            prefix_len=prefix_len,
             temperature=args.temperature,
             top_k=args.topk,
             top_p=args.topp,
             device=device
         )
 
-        text = tokenizer.convert_ids_to_tokens(out)
-        for i, item in enumerate(text[:-1]):  # 确保英文前后有空格
-            if is_word(item) and is_word(text[i + 1]):
-                text[i] = item + ' '
-        for i, item in enumerate(text):
-            if item == '[MASK]':
-                text[i] = ''
-            elif item == '[CLS]':
-                text[i] = '\n\n'
-            elif item == '[SEP]':
-                text[i] = '\n'
         print("=" * 40 + "=" * 40 + "\n")
-        text = ''.join(text).replace('##', '').strip()
+        text = tokenizer.decode(out, clean_up_tokenization_spaces=True)
         print(text)
 
 
 if __name__ == '__main__':
     main()
-    exit(0)
-    args = parse_args()
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.device  # 此处设置程序使用哪些显卡
-    device = utils.get_device()
-
-    tokenizer = utils.BertTokenizer(
-        vocab_file=args.vocab_file
-    )
-    model = GPT2LMHeadModel.from_pretrained(args.model_path)
-    model.to(device)
-    model.eval()
-
-    n_ctx = model.config.n_ctx
-
-    while True:
-        context_tokens = tokenizer.convert_tokens_to_ids(
-            tokenizer.tokenize(args.prefix)
-        )
-        generated = 0
-        for _ in range(args.nsamples // args.batch_size):
-            gen_len = args.length + 20  # 多生成点，可能能发现<end>
-            out = generate(
-                model=model,
-                context=context_tokens,
-                length=gen_len,
-                temperature=args.temperature,
-                top_k=args.topk,
-                top_p=args.topp,
-                device=device
-            )
-            for i in range(args.batch_size):
-                generated += 1
-                text = tokenizer.convert_ids_to_tokens(out)
-                for i, item in enumerate(text[:-1]):  # 确保英文前后有空格
-                    if is_word(item) and is_word(text[i + 1]):
-                        text[i] = item + ' '
-                    if item == '<end>':
-                        text[i] = item + ' '
-                        break
-                for i, item in enumerate(text):
-                    if item == '[MASK]':
-                        text[i] = ''
-                    elif item == '[CLS]':
-                        text[i] = '\n\n'
-                    elif item == '[SEP]':
-                        text[i] = '\n'
-                print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40 + "\n")
-                text = ''.join(text).replace('##', '').strip()
-                print(text)
-        if generated == args.nsamples:
-            break
