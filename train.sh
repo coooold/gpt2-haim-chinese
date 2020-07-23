@@ -1,4 +1,4 @@
-python train2.py \
+python train.py \
 	--stride 40 \
 	--model_config config/model-dev.json \
 	--data_dir data/tokenized \

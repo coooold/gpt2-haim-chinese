@@ -9,27 +9,81 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 class HaimTrainer(Trainer):
     def _training_step(
-            self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], optimizer: torch.optim.Optimizer
+        self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], optimizer: torch.optim.Optimizer
     ) -> float:
         model.train()
         for k, v in inputs.items():
             if isinstance(v, torch.Tensor):
                 inputs[k] = v.to(self.args.device)
 
-        print(inputs["suffix_ids"].shape, inputs["suffix_position_ids"].shape)
+        if self.args.past_index >= 0 and self._past is not None:
+            inputs["mems"] = self._past
+
+        outputs = model(**inputs)
+        loss = outputs[0]  # model outputs are always tuple in transformers (see doc)
+
+        if self.args.past_index >= 0:
+            self._past = outputs[self.args.past_index]
+
+        if self.args.n_gpu > 1:
+            loss = loss.mean()  # mean() to average on multi-gpu parallel training
+        if self.args.gradient_accumulation_steps > 1:
+            loss = loss / self.args.gradient_accumulation_steps
+
+        print(loss)
         exit(0)
+
+        loss.backward()
+
+        return loss.item()
+
+    def __training_step(
+            self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], optimizer: torch.optim.Optimizer
+    ) -> float:
+
+        suffix_lens = inputs['suffix_len']
+        batch_size = suffix_lens.shape[0]
+
+        input_ids = inputs['input_ids']
+        position_ids = inputs['position_ids']
+        labels = inputs['labels']
+
+        suffix_ids = []
+        suffix_position_ids = []
+        suffix_labels = []
+        prefix_ids = []
+        prefix_position_ids = []
+        prefix_labels = []
+        for i in range(batch_size):
+            suffix_len = suffix_lens[i]
+            suffix_ids.append(input_ids[i][:suffix_len].tolist())
+            suffix_position_ids.append(position_ids[i][:suffix_len])
+            suffix_labels.append(labels[i][:suffix_len])
+            prefix_ids.append(input_ids[i][suffix_len:])
+            prefix_position_ids.append(position_ids[i][suffix_len:])
+            prefix_labels.append(labels[i][suffix_len:])
+
+        suffix_ids = torch.LongTensor(suffix_ids).to(self.args.device)
+        suffix_position_ids = torch.LongTensor(suffix_position_ids).to(self.args.device)
+        suffix_labels = torch.LongTensor(suffix_labels).to(self.args.device)
+        prefix_ids = torch.LongTensor(prefix_ids).to(self.args.device)
+        prefix_position_ids = torch.LongTensor(prefix_position_ids).to(self.args.device)
+        prefix_labels = torch.LongTensor(prefix_labels).to(self.args.device)
+
+        model.train()
 
         # 输入suffix，suffix不计算loss
         _, past = model(
-            inputs=inputs["suffix_ids"],
-            position_ids=inputs["suffix_position_ids"],
-            past=None
+            input_ids=suffix_ids,
+            position_ids=suffix_position_ids,
+            labels=suffix_labels,
+            past=None,
         )[:2]
 
         outputs = model(
-            inputs=inputs["input_ids"],
-            position_ids=inputs["position_ids"],
-            labels=inputs["labels"],
+            input_ids=prefix_ids,
+            position_ids=prefix_position_ids,
+            labels=prefix_labels,
             past=past
         )
         loss = outputs[0]  # model outputs are always tuple in transformers (see doc)
