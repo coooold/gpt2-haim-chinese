@@ -57,7 +57,7 @@ class GPT2Dataset(Dataset):
         start_point = 0
         # 按滑动窗口切割内容
         while start_point + self.n_ctx < arr_len:
-            sample_len = randint(min_len, self.n_ctx - 3)
+            sample_len = randint(min_len, self.n_ctx - 6)
             sample = arr[start_point: start_point + sample_len]
             # 句子切分为 prefix_len + suffix_len
             prefix_len = math.floor(
@@ -69,7 +69,7 @@ class GPT2Dataset(Dataset):
             effectively allowing the model some leeway at inference time. 
             We sampled the position shift uniformly in \left[0, 0.1\times n\right][0,0.1×n].
             """
-            delta = min(randint(0, math.floor(0.1 * sample_len)), 3) * randint(-1, 1)
+            delta = int((random() - 0.5) * 7)  # [-3, 3]
             suffix = sample[prefix_len:sample_len] + [self.begin_token_id]
             suffix_len = len(suffix)
             suffix_positions = [prefix_len + 1 + i + delta for i in range(suffix_len)]
