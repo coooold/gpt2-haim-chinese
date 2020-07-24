@@ -29,7 +29,7 @@ def build_file(train_data_file, tokenizer, tokenized_data_file):
         for i in range(articles_len):
             print('process article {} of {}'.format(i, articles_len))
             content = articles[i]
-            content = '[MASK]' + content.replace('\n', '[SEP]').strip() + '[CLS]'
+            content = content.replace('\n', '[SEP]').strip()
             full_line.extend(tokenizer.convert_tokens_to_ids(
                 tokenizer.tokenize(content)
             ))
@@ -41,13 +41,13 @@ def build_file(train_data_file, tokenizer, tokenized_data_file):
 
 train_data_path = 'data/train'
 tokenized_data_path = 'data/tokenized'
-vocab_file = 'data/vocab/vocab.txt'
+vocab_file = 'data/vocab/clue_vocab.txt'
 
 if __name__ == '__main__':
     if not os.path.exists(tokenized_data_path):
         os.mkdir(tokenized_data_path)
 
-    full_tokenizer = utils.BertTokenizer(
+    full_tokenizer = get_tokenizer(
         vocab_file=vocab_file
     )
 

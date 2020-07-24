@@ -37,7 +37,7 @@ def main():
         num_parameters += parameter.numel()
     logger.info('number of parameters: {}'.format(num_parameters))
 
-    full_tokenizer = BertTokenizer(
+    full_tokenizer = get_tokenizer(
         vocab_file=model_args.vocab_file
     )
 
