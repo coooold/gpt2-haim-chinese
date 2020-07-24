@@ -63,7 +63,7 @@ class GPT2Dataset(Dataset):
         return train_files
 
     def load_samples(self, tokenized_file):
-        print("loading tokenized file: {}".format(tokenized_file))
+        # print("loading tokenized file: {}".format(tokenized_file))
 
         arr = np.fromfile(tokenized_file, dtype=np.int16).tolist()
         arr_len = len(arr)
