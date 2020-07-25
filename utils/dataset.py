@@ -43,12 +43,14 @@ class GPT2Dataset(Dataset):
     def __getitem__(self, i):
         # 找到i在哪个文件中
         j = 0
+        start = 0
         for idx, num in enumerate(self.train_data_index):
-            if i > num:
+            if i < num:
+                j = idx
+                start = num
                 break
-            j = idx
         raw = self.train_data[j]
-        pos = i - self.train_data_index[j-1] if j > 0 else 0
+        pos = i - start
 
         sample = raw[self.stride * pos: self.stride * pos + self.n_ctx]
         return self.process_sample(sample)
