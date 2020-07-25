@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
 from utils import *
-from transformers import Trainer
 from transformers.modeling_gpt2 import GPT2Config, GPT2LMHeadModel
 
 
@@ -47,7 +46,7 @@ def main():
                                 tokenized_file_path=model_args.data_dir,
                                 tokenizer=full_tokenizer)
 
-    trainer = Trainer(model=model,
+    trainer = MyTrainer(model=model,
                       args=training_args,
                       train_dataset=train_dataset)
 

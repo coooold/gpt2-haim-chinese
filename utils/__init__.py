@@ -5,6 +5,7 @@ import os
 import logging
 from .model_args import ModelArguments, parse_args
 from .dataset import GPT2Dataset
+from .my_trainer import MyTrainer
 from transformers import BertTokenizerFast
 import torch
 
