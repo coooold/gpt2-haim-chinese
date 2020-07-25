@@ -84,7 +84,7 @@ class GPT2Dataset(Dataset):
         sentences = self.to_sentences(sample)
         sentences_len = len(sentences)
 
-        if sentences_len == 1:
+        if sentences_len < 3:
             suffix_sentence_count = 0
         else:
             suffix_sentence_count = randint(1, min(len(sentences) - 1, max_suffix_sentences))
