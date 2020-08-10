@@ -9,5 +9,6 @@ python train.py \
 	--output_dir data/model \
 	--save_total_limit 1 \
 	--per_device_train_batch_size 4 \
+	--learning_rate 4e-4 \
 	--vocab_file data/vocab/clue_vocab.txt
 	#--pretrained_model_path model/model_epoch_1
