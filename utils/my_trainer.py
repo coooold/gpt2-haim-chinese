@@ -26,7 +26,7 @@ class MyTrainer(Trainer):
             sampler=train_sampler,
             collate_fn=self.data_collator,
             drop_last=self.args.dataloader_drop_last,
-            num_workers=4,
+            # num_workers=4,
         )
 
         return data_loader

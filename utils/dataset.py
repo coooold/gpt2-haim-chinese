@@ -32,7 +32,7 @@ class GPT2Dataset(Dataset):
 
     def __getitem__(self, i):
         pos = self.stride * i
-        sample = self.data[pos: pos + self.n_ctx]
+        sample = self.data[pos: pos + self.n_ctx - 2]
         return self.process_sample(sample)
 
     @staticmethod
@@ -41,12 +41,12 @@ class GPT2Dataset(Dataset):
         for root, subdirs, files in os.walk(tokenized_data_path):
             for file in files:
                 train_files.append(tokenized_data_path + '/' + file)
-        shuffle(train_files)
+        # shuffle(train_files)
         return train_files
 
     def process_sample(self, arr):
-        sample_len = self.n_ctx
-        prefix_len = randint(1, sample_len * 0.3)
+        sample_len = len(arr)
+        prefix_len = sample_len - randint(1, int(sample_len * 0.3))
         prefix = arr[0:prefix_len]
         suffix = arr[prefix_len:sample_len]
 
@@ -54,5 +54,5 @@ class GPT2Dataset(Dataset):
 
         return {
             'input_ids': final_sample,
-            'labels': final_sample,
+            'labels': final_sample
         }
