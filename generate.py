@@ -10,30 +10,20 @@ from transformers.generation_utils import top_k_top_p_filtering
 
 
 @torch.no_grad()
-def generate(model, context, context_positions, length, prefix_len, temperature=1.0, top_k=30, top_p=0.0,
+def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0,
              device='cpu'):
     inputs = torch.LongTensor(context).unsqueeze(0).to(device)
-    inputs_positions = torch.LongTensor(context_positions).unsqueeze(0).to(device)
 
-    generated_tokens = []
-    generated_positions = torch.LongTensor([prefix_len - 1]).unsqueeze(0).to(device)
-
-    past = None
-    for _ in range(length):
-        output, past = model(inputs, past=past, position_ids=inputs_positions)
-        scores = output[:, -1, :]
-        if temperature != 1.0:
-            scores = scores / temperature
-        next_token_logscores = top_k_top_p_filtering(scores, top_k=top_k, top_p=top_p)
-        probs = torch.softmax(next_token_logscores, dim=-1)
-        next_token = torch.multinomial(probs, num_samples=1).squeeze(1)
-
-        generated_tokens.append(next_token.item())
-        inputs = next_token.view(1, 1)
-        generated_positions += 1
-        inputs_positions = generated_positions
-
-    return generated_tokens
+    out = model.generate(
+        input_ids=inputs,
+        max_length=length,
+        temperature=temperature,
+        top_k=top_k,
+        top_p=top_p,
+        repetition_penalty=1.0,
+        do_sample=True,
+    )
+    return out[0, :].tolist()
 
 
 def parse_args():
@@ -87,18 +77,14 @@ def main():
     model.eval()
 
     for c in range(args.nsamples):
-        context_tokens, context_positions, prefix_len = prepare_inputs(
-            prefix=args.prefix,
-            suffix=args.suffix,
-            length=args.length,
-            tokenizer=tokenizer
+        prefix_tokens = tokenizer.convert_tokens_to_ids(
+            tokenizer.tokenize(args.prefix)
         )
+
         out = generate(
             model=model,
-            context=context_tokens,
-            context_positions=context_positions,
+            context=prefix_tokens,
             length=args.length + 10,
-            prefix_len=prefix_len,
             temperature=args.temperature,
             top_k=args.topk,
             top_p=args.topp,
@@ -109,11 +95,10 @@ def main():
         print(args.prefix)
         text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
 
-        end_pos = text.find('<end>')
-        if end_pos >= 0:
-            text = text[:end_pos]
+        # end_pos = text.find('<end>')
+        # if end_pos >= 0:
+        #     text = text[:end_pos]
         print(text)
-        print(args.suffix)
 
 
 if __name__ == '__main__':
