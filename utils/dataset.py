@@ -34,7 +34,10 @@ class GPT2Dataset(Dataset):
         pos = self.stride * i
         sample = self.data[pos: pos + self.n_ctx - 2]
         # return self.process_sample(sample)
-        return sample
+        return {
+            'input_ids': sample,
+            'labels': sample
+        }
 
     @staticmethod
     def scan_files(tokenized_data_path: str):
