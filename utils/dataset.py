@@ -25,7 +25,8 @@ class GPT2Dataset(Dataset):
         for f in self.scan_files(tokenized_file_path):
             print("load training {}".format(f))
             raw = np.fromfile(f, dtype=np.int16).tolist()
-            self.data += [self.cls_token_id] + raw
+            self.data += [self.cls_token_id]
+            self.data += raw
 
     def __len__(self):
         return (len(self.data) - self.n_ctx) // self.stride
