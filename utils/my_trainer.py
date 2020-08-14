@@ -2,6 +2,12 @@ from transformers import Trainer
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler
+from prefetch_generator import BackgroundGenerator
+
+
+class DataLoaderX(DataLoader):
+    def __iter__(self):
+        return BackgroundGenerator(super().__iter__())
 
 
 class MyTrainer(Trainer):
@@ -20,7 +26,7 @@ class MyTrainer(Trainer):
             else DistributedSampler(self.train_dataset)
         )
 
-        data_loader = DataLoader(
+        data_loader = DataLoaderX(
             self.train_dataset,
             batch_size=self.args.train_batch_size,
             sampler=train_sampler,

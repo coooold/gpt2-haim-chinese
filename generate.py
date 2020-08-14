@@ -83,14 +83,15 @@ def main():
         prefix_tokens = tokenizer.convert_tokens_to_ids(
             tokenizer.tokenize(args.prefix)
         )
-        suffix_tokens = tokenizer.convert_tokens_to_ids(
-            tokenizer.tokenize(args.suffix)
-        )
-        context = suffix_tokens + [begin_token_id] + prefix_tokens
+        # suffix_tokens = tokenizer.convert_tokens_to_ids(
+        #     tokenizer.tokenize(args.suffix)
+        # )
+        # context = suffix_tokens + [begin_token_id] + prefix_tokens
+        #
 
         out = generate(
             model=model,
-            context=context,
+            context=prefix_tokens,
             length=args.length + 10,
             temperature=args.temperature,
             top_k=args.topk,
