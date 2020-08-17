@@ -6,12 +6,15 @@ import os
 import argparse
 from transformers import GPT2LMHeadModel
 import utils
+from random import randint
 from transformers.generation_utils import top_k_top_p_filtering
 
 
 @torch.no_grad()
 def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0, repetition_penalty=1.0,
              device='cpu'):
+    torch.manual_seed(randint(999, 9999999))
+
     inputs = torch.LongTensor(context).unsqueeze(0).to(device)
 
     out = model.generate(
