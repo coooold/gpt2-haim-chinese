@@ -10,7 +10,7 @@ from transformers.generation_utils import top_k_top_p_filtering
 
 
 @torch.no_grad()
-def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0,
+def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0, repetition_penalty=1.0,
              device='cpu'):
     inputs = torch.LongTensor(context).unsqueeze(0).to(device)
 
@@ -20,7 +20,7 @@ def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0,
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=1.15,
+        repetition_penalty=repetition_penalty,
         do_sample=True,
     )
     return out[0, :].tolist()
@@ -88,6 +88,7 @@ def main():
                 temperature=args.temperature,
                 top_k=args.topk,
                 top_p=args.topp,
+                repetition_penalty=args.repetition_penalty,
                 device=device
             )
             print("=" * 40 + "=" * 40 + "\n")
