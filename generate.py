@@ -68,7 +68,8 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
 def main():
     args = parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device  # 此处设置程序使用哪些显卡
-    device = utils.get_device()
+    # device = utils.get_device()
+    device = 'cpu'
     tokenizer = get_tokenizer(args.vocab_file)
 
     model = GPT2LMHeadModel.from_pretrained(args.model_path)
