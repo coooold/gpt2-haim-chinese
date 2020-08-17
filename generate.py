@@ -20,7 +20,7 @@ def generate(model, context, length, temperature=1.0, top_k=30, top_p=0.0,
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=1.0,
+        repetition_penalty=1.15,
         do_sample=True,
     )
     return out[0, :].tolist()
