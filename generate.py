@@ -81,6 +81,9 @@ def main():
     while True:
         prefix = input("\n\nInput Text >> ")
 
+        if len(prefix) <= 0:
+            continue
+
         for c in range(args.nsamples):
             prefix_tokens = tokenizer.convert_tokens_to_ids(
                 tokenizer.tokenize(prefix)
