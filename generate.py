@@ -73,38 +73,28 @@ def main():
     device = utils.get_device()
     tokenizer = get_tokenizer(args.vocab_file)
 
-    begin_token_id = tokenizer.convert_tokens_to_ids('<begin>')
-
     model = GPT2LMHeadModel.from_pretrained(args.model_path)
     model.to(device)
     model.eval()
 
-    for c in range(args.nsamples):
+    while True:
+        prefix = input("\n\nInput Text >> ")
         prefix_tokens = tokenizer.convert_tokens_to_ids(
-            tokenizer.tokenize(args.prefix)
+            tokenizer.tokenize(prefix)
         )
-        # suffix_tokens = tokenizer.convert_tokens_to_ids(
-        #     tokenizer.tokenize(args.suffix)
-        # )
-        # context = suffix_tokens + [begin_token_id] + prefix_tokens
-        #
-
-        out = generate(
-            model=model,
-            context=prefix_tokens,
-            length=args.length + 10,
-            temperature=args.temperature,
-            top_k=args.topk,
-            top_p=args.topp,
-            device=device
-        )
-
-        print("=" * 40 + "=" * 40 + "\n")
-        text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
-        # end_pos = text.find('<end>')
-        # if end_pos >= 0:
-        #     text = text[:end_pos]
-        print(text)
+        for c in range(args.nsamples):
+            out = generate(
+                model=model,
+                context=prefix_tokens,
+                length=args.length + 10,
+                temperature=args.temperature,
+                top_k=args.topk,
+                top_p=args.topp,
+                device=device
+            )
+            print("=" * 40 + "=" * 40 + "\n")
+            text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
+            print(text)
 
 
 if __name__ == '__main__':
