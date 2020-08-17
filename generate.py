@@ -38,8 +38,6 @@ def parse_args():
                         help='模型参数')
     parser.add_argument('--vocab_file', default='data/vocab/vocab.txt', type=str, required=False, help='词表路径')
     parser.add_argument('--model_path', default='model/final_model', type=str, required=False, help='模型路径')
-    parser.add_argument('--prefix', default='[CLS][MASK]', type=str, required=False, help='生成文章的开头')
-    parser.add_argument('--suffix', default='[SEP]', type=str, required=False, help='生成文章的结尾')
     parser.add_argument('--repetition_penalty', default=1.0, type=float, required=False)
 
     return parser.parse_args()
