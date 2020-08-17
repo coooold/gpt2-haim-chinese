@@ -68,8 +68,7 @@ def prepare_inputs(prefix, suffix, length, tokenizer):
 def main():
     args = parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device  # 此处设置程序使用哪些显卡
-    # device = utils.get_device()
-    device = 'cpu'
+    device = utils.get_device()
     tokenizer = get_tokenizer(args.vocab_file)
 
     model = GPT2LMHeadModel.from_pretrained(args.model_path)
@@ -78,10 +77,12 @@ def main():
 
     while True:
         prefix = input("\n\nInput Text >> ")
-        prefix_tokens = tokenizer.convert_tokens_to_ids(
-            tokenizer.tokenize(prefix)
-        )
+
         for c in range(args.nsamples):
+            prefix_tokens = tokenizer.convert_tokens_to_ids(
+                tokenizer.tokenize(prefix)
+            )
+
             out = generate(
                 model=model,
                 context=prefix_tokens,
