@@ -79,29 +79,32 @@ def main():
     model.eval()
 
     while True:
-        prefix = input("\n\nInput Text >> ")
+        try:
+            prefix = input("\n\nInput Text >> ")
 
-        if len(prefix) <= 0:
-            continue
+            if len(prefix) <= 0:
+                continue
 
-        for c in range(args.nsamples):
-            prefix_tokens = tokenizer.convert_tokens_to_ids(
-                tokenizer.tokenize(prefix)
-            )
+            for c in range(args.nsamples):
+                prefix_tokens = tokenizer.convert_tokens_to_ids(
+                    tokenizer.tokenize(prefix)
+                )
 
-            out = generate(
-                model=model,
-                context=prefix_tokens,
-                length=args.length + 10,
-                temperature=args.temperature,
-                top_k=args.topk,
-                top_p=args.topp,
-                repetition_penalty=args.repetition_penalty,
-                device=device
-            )
-            print("=" * 40 + "=" * 40 + "\n")
-            text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
-            print(text)
+                out = generate(
+                    model=model,
+                    context=prefix_tokens,
+                    length=args.length + 10,
+                    temperature=args.temperature,
+                    top_k=args.topk,
+                    top_p=args.topp,
+                    repetition_penalty=args.repetition_penalty,
+                    device=device
+                )
+                print("=" * 40 + "=" * 40 + "\n")
+                text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
+                print(text)
+        except UnicodeDecodeError:
+            pass
 
 
 if __name__ == '__main__':

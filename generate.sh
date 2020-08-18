@@ -3,8 +3,6 @@ python generate.py \
   --length 5 \
   --vocab_file data/vocab/clue_vocab.txt \
   --model_path data/model/checkpoint-15 \
-  --prefix "农民说：" \
-  --suffix "然后回了家。" \
   --topp 1 \
   --temperature 1.0 \
   --nsamples 5
