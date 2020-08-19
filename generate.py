@@ -103,7 +103,9 @@ def main():
                 print("=" * 40 + "=" * 40 + "\n")
                 text = tokenizer.decode(out, clean_up_tokenization_spaces=True).replace(' ', '')
                 print(text)
-        except UnicodeDecodeError:
+        except ValueError:
+            pass
+        except RuntimeError:
             pass
 
 

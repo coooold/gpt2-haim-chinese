@@ -3,3 +3,4 @@ data/model
 .idea
 **/*.pyc
 data/model_gpu
+.DS_Store

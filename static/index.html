@@ -1,0 +1,73 @@
+<!DOCTYPE html
+><!--STATUS OK-->
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>GPT-2</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+      #result {
+        padding: 10px;
+        margin-top: 30px;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="in">
+      <form name="form">
+        请输入内容：<input
+          type="text"
+          name="prefix"
+          size="100"
+          value="春风不度玉门关"
+        /><br />
+        len <input type="text" name="len" value="100" /><br />
+        topp： <input type="text" name="topp" value="1.0" /><br />
+        topk： <input type="text" name="topk" value="20" /><br />
+        repetition_penalty：
+        <input type="text" name="repetition_penalty" value="1.12" /><br />
+        temperature
+        <input type="text" name="temperature" value="1.0" /><br />
+      </form>
+
+      <button id="btn">补全</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+      $(function () {
+        var $btn = $("#btn"),
+          $result = $("#result");
+        $btn.click(function () {
+          $result.html("loading...");
+          var form = document.forms["form"];
+
+          $.ajax({
+            url: "http://localhost:8080/predict",
+            method: "GET",
+            async: true,
+            dataType: "jsonp",
+            data: {
+              prefix: form.prefix.value,
+              topp: form.topp.value,
+              topk: form.topk.value,
+              repetition_penalty: form.repetition_penalty.value,
+              len: form.len.value,
+              temperature: form.temperature.value,
+            },
+            success: function (res) {
+              $result.html(res.body);
+            },
+            error: function (res) {
+              $result.html("error");
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

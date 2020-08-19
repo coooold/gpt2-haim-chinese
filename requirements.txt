@@ -2,3 +2,4 @@ transformers~=3.0.2
 torch~=1.5.1
 numpy~=1.19.0
 prefetch_generator
+Flask~=1.1.2
